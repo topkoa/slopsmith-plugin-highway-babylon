@@ -124,6 +124,12 @@ Babylon.js is loaded from CDN (`https://cdn.babylonjs.com/babylon.js`) on first 
 - ACES tonemap, exposure 1.1, contrast 1.15.
 - Vignette weight 2.0.
 
+### Real-time shadows
+- Top-down `DirectionalLight` casts shadows of gems (notes, hits, sustains) onto the fretboard surface.
+- `ShadowGenerator` w/ blur exponential shadow map (soft edges), 1024 res, `darkness=0.35`, `blurKernel=24`.
+- Thin-instance shadow casting works automatically — every instance casts its own shadow.
+- Board `receiveShadows = true`, diffuse + emissive tuned for shadow contrast.
+
 ## What's NOT implemented yet
 
 In rough order of likely usefulness:

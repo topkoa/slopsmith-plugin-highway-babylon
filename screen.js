@@ -496,16 +496,26 @@
             const dir = new B.DirectionalLight('d', new B.Vector3(-0.3, -1, -0.4), scene);
             dir.intensity = 0.6;
 
+            const shadowLight = new B.DirectionalLight('shadowLight', new B.Vector3(0, -1, 0.15), scene);
+            shadowLight.position = new B.Vector3(SCALE * 0.5, 6, -1);
+            shadowLight.intensity = 0.9;
+            const shadowGen = new B.ShadowGenerator(1024, shadowLight);
+            shadowGen.useBlurExponentialShadowMap = true;
+            shadowGen.blurKernel = 24;
+            shadowGen.darkness = 0.35;
+            shadowGen.bias = 0.0005;
+
             const boardMat = new B.StandardMaterial('boardMat', scene);
-            boardMat.diffuseColor = new B.Color3(0.04, 0.05, 0.08);
+            boardMat.diffuseColor = new B.Color3(0.20, 0.24, 0.32);
             boardMat.specularColor = new B.Color3(0, 0, 0);
-            boardMat.emissiveColor = new B.Color3(0.015, 0.02, 0.04);
+            boardMat.emissiveColor = new B.Color3(0.003, 0.005, 0.008);
             boardMat.backFaceCulling = false;
             const boardDepth = (AHEAD + BEHIND) * TS + 1;
             const board = B.MeshBuilder.CreateGround('board', { width: SCALE, height: boardDepth }, scene);
             board.position = new B.Vector3(SCALE / 2, 0, (BEHIND - AHEAD) * 0.5 * TS);
             board.material = boardMat;
             board.parent = fretboardRoot;
+            board.receiveShadows = true;
 
             const oddCol = _hexToRgb(0x3d739e);
             const evenCol = _hexToRgb(0x62a5d8);
@@ -762,6 +772,12 @@
             beatQuarterMesh.thinInstanceSetBuffer('matrix', beatQuarterBuffer, 16, false);
             beatQuarterMesh.thinInstanceCount = 0;
             beatQuarterMesh.parent = fretboardRoot;
+
+            for (let s = 0; s < DEFAULT_VIS_STR; s++) {
+                shadowGen.addShadowCaster(stringNoteMeshes[s]);
+                shadowGen.addShadowCaster(stringHitMeshes[s]);
+                shadowGen.addShadowCaster(stringSusMeshes[s]);
+            }
 
             try {
                 pipeline = new B.DefaultRenderingPipeline('fx', true, scene, [camera]);
