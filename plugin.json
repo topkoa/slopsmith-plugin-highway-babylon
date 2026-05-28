@@ -1,0 +1,7 @@
+{
+    "id": "highway_babylon",
+    "name": "3D Highway (Babylon)",
+    "version": "0.0.1",
+    "type": "visualization",
+    "script": "screen.js"
+}
