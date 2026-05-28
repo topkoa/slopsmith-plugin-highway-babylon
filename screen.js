@@ -169,6 +169,9 @@
         let fretLabelPlanes = [];
         let fpsOverlay = null;
         let fpsLastUpdate = 0;
+        let fpsLastFrameTime = 0;
+        const FPS_WINDOW_MS = 1000;
+        const fpsSamples = [];
         let laneOddMesh = null;
         let laneOddMat = null;
         let laneOddBuffer = null;
@@ -1216,8 +1219,24 @@
 
             if (fpsOverlay) {
                 const tNow = performance.now();
-                if (tNow - fpsLastUpdate > 250) {
-                    fpsOverlay.textContent = engine.getFps().toFixed(0) + ' FPS';
+                if (fpsLastFrameTime > 0) {
+                    const dtMs = tNow - fpsLastFrameTime;
+                    fpsSamples.push({ t: tNow, dt: dtMs });
+                    const cutoff = tNow - FPS_WINDOW_MS;
+                    while (fpsSamples.length && fpsSamples[0].t < cutoff) fpsSamples.shift();
+                }
+                fpsLastFrameTime = tNow;
+                if (tNow - fpsLastUpdate > 250 && fpsSamples.length > 0) {
+                    let sum = 0, peak = 0;
+                    for (let i = 0; i < fpsSamples.length; i++) {
+                        const dt = fpsSamples[i].dt;
+                        sum += dt;
+                        if (dt > peak) peak = dt;
+                    }
+                    const avg = sum / fpsSamples.length;
+                    const fps = avg > 0 ? (1000 / avg) : 0;
+                    fpsOverlay.textContent = fps.toFixed(0) + ' FPS · ' + peak.toFixed(1) + ' ms peak';
+                    fpsOverlay.style.color = peak > 33 ? '#ff6060' : peak > 20 ? '#ffd060' : '#80c0ff';
                     fpsLastUpdate = tNow;
                 }
             }
@@ -1239,6 +1258,8 @@
                 if (fpsOverlay && fpsOverlay.parentNode) fpsOverlay.parentNode.removeChild(fpsOverlay);
             } catch (e) { /* swallow */ }
             fpsOverlay = null;
+            fpsLastFrameTime = 0;
+            fpsSamples.length = 0;
             try {
                 if (pipeline) { pipeline.dispose(); }
             } catch (e) { /* swallow */ }
